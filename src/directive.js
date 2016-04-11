@@ -192,7 +192,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				node: null,
 				start: 0,
 				end: 0
-			};
+			}, lastError;
 			
 		if (angular.isDefined(attrs.datetimeUtc)) {
 			parser.setTimezone("+0000");
@@ -265,6 +265,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
+				lastError = err;
 				$log.error(err);
 
 				ngModel.$setValidity("datetime", false);
@@ -311,6 +312,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 				return undefined;
 			}
+			lastError = null;
 
 			ngModel.$setValidity("datetime", true);
 
@@ -451,9 +453,14 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					if (range.node.next && range.node.next.token.name === 'string' && range.node.next.token.type === 'static') {
 						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
 					}
-
+					
 					if (e.keyCode === nextSeparatorKeyCode) {
 						e.preventDefault();
+						if (lastError && lastError.code == "NUMBER_TOOSHORT") {
+							parser.nodeParseValue(lastError.node, lastError.properValue);
+							ngModel.$setViewValue(parser.getText());
+							ngModel.$render();
+						}
 						if (!ngModel.$error.datetime) {
 							selectRange(range, "next");
 						} else {
