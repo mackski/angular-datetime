@@ -1271,7 +1271,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				lastError = err;
 				
 				if (err.code != "NOT_INIT") {
-					$log.error(err);
+					$log.debug(err);
 
 					ngModel.$setValidity("datetime", false);
 					
